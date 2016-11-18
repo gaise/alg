@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 #define GAN 2
-#define BETA 0.5
+#define BETA 0.25
 
 double f(double x)
 {
@@ -28,28 +28,24 @@ int main(int argc, char *argv[])
   y[0] = exp(pow(x[0],4)) - M_PI;
 
   for (i = 0; i < 10000; i++) {
-    j = 1;
-    printf("%d\n", i);
+    j = 0;
     while(1) {
       double l, r;
-      l = fabs(f(x[i] - pow(GAN, -j) * f(x[i]) / g(x[i])));
-      r = (1 - BETA*pow(GAN, -j) * fabs(f(x[i])));
+      l = fabs(f(x[i] - pow(GAN, j) * f(x[i]) / g(x[i])));
+      r = (1 - BETA*pow(GAN, j)) * fabs(f(x[i]));
       if (l <= r) break;
-      j++;
+      j--;
     }
     
-    x[i+1] = x[i] + pow(GAN,-j)*y[i] / g(x[i]);
+    x[i+1] = x[i] - pow(GAN,j)*y[i] / g(x[i]);
     y[i+1] = f(x[i+1]);
     n++;
     if (x[i] == x[i+1]) break;
   }
 
-  printf("%d\n", n);
-  printf("%lf\n", exp(0) - M_PI);
-
   gp = popen("gnuplot -persist", "w");
-  fprintf(gp, "set xrange [-1:5]\n");
-  fprintf(gp, "set yrange [-100:100]\n");
+  fprintf(gp, "set xrange [0:6]\n");
+  fprintf(gp, "set yrange [-10:1000]\n");
   fprintf(gp, "plot '-' with lines linetype 1 title \"newton\"\n");
 
   for (i = 0; i <= n; i++) {
@@ -59,6 +55,9 @@ int main(int argc, char *argv[])
   fprintf(gp, "e\n");
 
   pclose(gp);
+
+  printf("iteration: %d\n", n);
+  printf("f(x) = 0\nx: %lf\n", x[n]);
 
   return 0;
 }
